@@ -29,6 +29,11 @@ Adafruit_BME680 bme;
 int temp = 0;
 int humd = 0;
 
+//INA
+#include "Adafruit_INA260.h"
+Adafruit_INA260 ina260;
+
+
 void setup() {
   //Board Setup
   Serial.begin(9600);
@@ -70,7 +75,7 @@ if (bme.performReading()) {
   temp = bme.temperature;
   return temp;
   }
-  return -404; // Return a default or error value if reading fails
+  return -404;
 }
 
 int getHumd() {
@@ -79,6 +84,17 @@ if (bme.performReading()) {
   return humd;
   }
   return -404;
+}
+
+String readINA() {
+  float current = ina260.readCurrent();
+  float busVoltage = ina260.readBusVoltage();
+  float power = ina260.readPower();
+  
+  String inaData = "Current: " + String(current)
+                 + "Bus Voltage: " + String(busVoltage)
+                 + "Power: " + String(power);
+  return inaData;
 }
 
 void logData() {
@@ -99,7 +115,7 @@ void logData() {
 
 
   void loop() {
-    dataPacket = String(zero) + "/" + (getWeight()) + "/" + (getTemp()) + "/" + (getHumd());
+    dataPacket = String(zero) + "/" + (getWeight()) + "/" + (getTemp()) + "/" + (getHumd()) + readINA();
     logData();
     delay(100);
 }
