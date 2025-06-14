@@ -1,4 +1,5 @@
 #include "Arduino.h"
+#include "Wire.h"
 
 #define SDA 2
 #define SCL 3
@@ -14,29 +15,40 @@ HX711 scale;
 #include "FS.h"
 #include "SD.h"
 #include "SPI.h"
-#define sck 14
-#define miso 12
-#define mosi 13
-#define cs 15
+#define SCK1 14
+#define MISO1 12
+#define MOSI1 13
+#define CS1 15
 String logMsg;
 String dataPacket;
 
+//BME
+#include "Adafruit_Sensor.h"
+#include "Adafruit_BME680.h"
+Adafruit_BME680 bme;
+int temp = 0;
+int humd = 0;
+
 void setup() {
+  //Board Setup
   Serial.begin(9600);
+  Wire.begin(SDA, SCL);
+
+
+  //Wire
+  Wire.begin(SDA, SCL);
 
   //HX711
   scale.begin(SDA, SCL);
   scale.set_gain(128);
-  Serial.println(getZero());
 
   //SD Card
-  SPI.begin(sck, miso, mosi, cs);
+  SPI.begin(SCK1, MISO1, MOSI1, CS1);
 
-}
+  //BME
+  bme.setTemperatureOversampling(BME680_OS_8X);
+  bme.setHumidityOversampling(BME680_OS_2X);
 
-void loop() {
-  dataPacket = String(zero) + "/" + (getWeight()) + "/";
-  logData();
 }
 
 int getZero() {
@@ -46,14 +58,31 @@ int getZero() {
     delay(100);
   }
   zero = sum / 10;
+  return zero;
 }
 
 float getWeight() {
   return (scale.read() - zero) / scaleFactor;
 }
 
+int getTemp() {
+if (bme.performReading()) {
+  temp = bme.temperature;
+  return temp;
+  }
+  return -404; // Return a default or error value if reading fails
+}
+
+int getHumd() {
+if (bme.performReading()) {
+  humd = bme.humidity;
+  return humd;
+  }
+  return -404;
+}
+
 void logData() {
-  while (!SD.begin(cs)) {}
+  while (!SD.begin(CS1)) {}
   File f = SD.open("/MiteOut_Data.txt", FILE_WRITE);
   if (f){
     f.println(dataPacket);
@@ -66,3 +95,11 @@ void logData() {
       Serial.println(logMsg);
     }
   }
+
+
+
+  void loop() {
+    dataPacket = String(zero) + "/" + (getWeight()) + "/" + (getTemp()) + "/" + (getHumd());
+    logData();
+    delay(100);
+}
