@@ -6,8 +6,6 @@
 //HX711
 #include "HX711.h"
 int scaleFactor = 1.0;
-float getWeight();
-int getZero();
 int zero = 0;
 int sum = 0;
 HX711 scale;
@@ -16,10 +14,10 @@ HX711 scale;
 #include "FS.h"
 #include "SD.h"
 #include "SPI.h"
-int sck = 14;
-int miso = 12;
-int mosi = 13;
-int cs = 15;
+#define sck 14
+#define miso 12
+#define mosi 13
+#define cs 15
 String logMsg;
 String dataPacket;
 
@@ -32,14 +30,13 @@ void setup() {
   Serial.println(getZero());
 
   //SD Card
-  SPI.begin(sck, miso, mosi, cs); // Initialize SPI with fixed pins
+  SPI.begin(sck, miso, mosi, cs);
 
 }
 
 void loop() {
-  Serial.println(getWeight());
-  delay(10);
-  dataPacket = zero + "/" + getWeight() + "/";
+  dataPacket = String(zero) + "/" + (getWeight()) + "/";
+  logData();
 }
 
 int getZero() {
@@ -55,7 +52,7 @@ float getWeight() {
   return (scale.read() - zero) / scaleFactor;
 }
 
-void logData(); {
+void logData() {
   while (!SD.begin(cs)) {}
   File f = SD.open("/MiteOut_Data.txt", FILE_WRITE);
   if (f){
