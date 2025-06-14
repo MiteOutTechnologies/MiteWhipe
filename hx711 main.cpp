@@ -1,36 +1,40 @@
-/*
- * https://circuits4you.com
- * ESP32 LED Blink Example
- * Board ESP23 DEVKIT V1
- * 
- * ON Board LED GPIO 2
- */
-#include <arduino.h>
+#include "Arduino.h"
+
+#define SDA 2
+#define SCL 3
+
+//HX711
 #include "HX711.h"
-
-#define DT 21
-#define SCK 22
-
+int scaleFactor = 1.0;
+float getWeight();
+int getZero();
+int zero = 0;
+int sum = 0;
 HX711 scale;
 
 void setup() {
   Serial.begin(9600);
-  scale.begin(DT, SCK);
+
+  //HX711
+  scale.begin(SDA, SCL);
+  scale.set_gain(128);
+  Serial.println(getZero());
 }
 
 void loop() {
-  scale.set_gain(128); // Set to Channel A
-  long readingA = scale.read();
+  Serial.println(getWeight());
+  delay(10); 
+}
 
-  //scale.set_gain(32); // Switch to Channel B
-  //long readingB = scale.read();
+int getZero() {
+  sum = 0;
+  for (int i = 0; i < 10; i++) {
+    sum = sum + scale.read();
+    delay(100);
+  }
+  zero = sum / 10;
+}
 
-  //Serial.print("Mushroom 1: ");
-  Serial.println(readingA);
-  //Serial.print(",");
-  //Serial.print("    Mushroom 2: ");
-  //float scaledB = readingB * (128.0 / 32.0);  // Normalize to same gain as A
-  //Serial.println(scaledB);
-
-  delay(10); // Adjust sample rate as needed
+float getWeight() {
+  return (scale.read() - zero) / scaleFactor;
 }
