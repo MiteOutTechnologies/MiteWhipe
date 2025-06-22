@@ -1,8 +1,8 @@
 #include "Arduino.h"
 #include "Wire.h"
 
-#define SDA 2
-#define SCL 3
+#define SDA 21
+#define SCL 22
 
 //HX711
 #include "HX711.h"
@@ -37,14 +37,14 @@ Adafruit_INA260 ina260;
 void setup() {
   //Board Setup
   Serial.begin(9600);
-  Wire.begin(SDA, SCL);
+  Wire.begin(21, 22);
 
 
   //Wire
-  Wire.begin(SDA, SCL);
+  
 
   //HX711
-  scale.begin(SDA, SCL);
+  //scale.begin(SDA, SCL);
   scale.set_gain(128);
 
   //SD Card
